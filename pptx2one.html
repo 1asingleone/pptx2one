@@ -450,7 +450,6 @@ async function mergeAndDownload() {
     if (typeof saveAs !== 'undefined') { saveAs(blob, fileName); }
     else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); URL.revokeObjectURL(url); }
 
-    const totalSlides = nextSlideNum && nextSlideNum > 1 ? (nextSlideNum - 1) : '?';
     updateProgress(100, '合并完成！');
     setStatus('下载已启动', 'success');
     showSummary('合并成功: ' + fileName, 'success');
