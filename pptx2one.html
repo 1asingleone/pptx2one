@@ -1,473 +1,143 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>pptx2one �?PPT 合并工具</title>
+<title>pptx2one - PPT 合并工具</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
-:root {
-  --bg: #f3f4f6;
-  --surface: #ffffff;
-  --surface-hover: #f9fafb;
-  --border: #e5e7eb;
-  --border-light: #f0f0f0;
-  --text: #111827;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
-  --accent-light: #f5f3ff;
-  --success: #059669;
-  --error: #dc2626;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
-  --font-heading: 'Instrument Sans', sans-serif;
-  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{font-size:16px;-webkit-font-smoothing:antialiased}
-body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:32px 20px}
-.container{width:100%;max-width:800px;animation:fadeUp .5s ease-out}
-header{margin-bottom:28px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
-header h1{font-family:var(--font-heading);font-size:26px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
-header h1 span{color:var(--accent)}
-header .tagline{font-size:14px;color:var(--text-secondary);font-weight:400}
-header .badge{font-size:11px;padding:3px 10px;background:var(--accent-light);color:var(--accent);border-radius:100px;font-weight:500;letter-spacing:0.02em;margin-left:auto}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:box-shadow var(--transition)}
-.card:hover{box-shadow:var(--shadow-md)}
-.drop-zone{position:relative;padding:36px 24px;text-align:center;cursor:pointer;transition:all var(--transition);min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.drop-zone::before{content:'';position:absolute;inset:12px;border:2px dashed var(--border);border-radius:var(--radius-md);transition:all var(--transition);pointer-events:none}
-.drop-zone:hover::before,.drop-zone.dragover::before{border-color:var(--accent);border-style:solid}
-.drop-zone.dragover{background:var(--accent-light)}
-.drop-zone.dragover::before{border-color:var(--accent)}
-.drop-zone .icon{font-size:36px;line-height:1;margin-bottom:8px;position:relative}
-.drop-zone .label{font-size:15px;font-weight:500;color:var(--text);position:relative}
-.drop-zone .sublabel{font-size:13px;color:var(--text-tertiary);margin-top:4px;position:relative}
-.drop-zone .file-btn{position:relative;margin-top:12px;padding:7px 20px;font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--accent);background:var(--accent-light);border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition)}
-.drop-zone .file-btn:hover{background:var(--accent);color:#fff}
-input[type="file"]{display:none}
-.file-list-wrap{display:none;flex-direction:column;margin-top:12px}
-.file-list-wrap.visible{display:flex}
-.file-list-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px}
-.file-list-header .count{font-size:14px;font-weight:600;color:var(--text)}
-.file-list-header .count em{font-style:normal;color:var(--accent)}
-.file-list-header .btn-clear{font-size:12px;color:var(--text-tertiary);background:none;border:none;cursor:pointer;font-family:var(--font-body);transition:color var(--transition);padding:2px 6px;border-radius:4px}
-.file-list-header .btn-clear:hover{color:var(--error)}
-.file-item{display:flex;align-items:center;gap:10px;padding:8px 18px;border-top:1px solid var(--border-light);transition:background var(--transition);user-select:none;animation:slideIn .25s ease-out}
-.file-item:first-child{border-top:none}
-.file-item:hover{background:var(--surface-hover)}
-.file-item.dragging{opacity:0.3}
-.file-item.drag-over{border-top:2px solid var(--accent)}
-.file-item .idx{width:22px;font-size:12px;color:var(--text-tertiary);text-align:center;flex-shrink:0;font-variant-numeric:tabular-nums}
-.file-item .drag-handle{cursor:grab;color:var(--text-tertiary);font-size:14px;padding:2px;flex-shrink:0;line-height:1;opacity:0.4;transition:opacity var(--transition)}
-.file-item:hover .drag-handle{opacity:0.8}
-.file-item .info{flex:1;min-width:0}
-.file-item .name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.file-item .meta{font-size:12px;color:var(--text-tertiary);margin-top:1px}
-.file-item .btn-remove{background:none;border:none;color:var(--text-tertiary);font-size:15px;cursor:pointer;padding:4px;flex-shrink:0;border-radius:4px;transition:all var(--transition);line-height:1;opacity:0}
-.file-item:hover .btn-remove{opacity:1}
-.file-item .btn-remove:hover{color:var(--error);background:var(--error-bg)}
-.file-item .badge-slide{font-size:11px;padding:1px 7px;border-radius:100px;background:var(--accent-light);color:var(--accent);font-weight:500;flex-shrink:0}
-.action-area{display:flex;flex-direction:column;gap:14px;padding:18px;margin-top:12px}
-.merge-btn{width:100%;padding:11px 0;font-family:var(--font-heading);font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:none;border-radius:var(--radius-md);cursor:pointer;transition:all var(--transition);letter-spacing:0.01em;position:relative}
-.merge-btn:hover:not(:disabled){background:var(--accent-hover);transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.merge-btn:active:not(:disabled){transform:translateY(0)}
-.merge-btn:disabled{background:#c4b5fd;cursor:not-allowed;transform:none;box-shadow:none}
-.merge-btn .spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;position:absolute;left:50%;top:50%;margin:-8px 0 0 -8px}
-.merge-btn.loading .label{visibility:hidden}
-.merge-btn.loading .spinner{display:block}
-.progress-wrap{display:none}
-.progress-wrap.visible{display:block}
-.progress-bar{height:4px;background:var(--border);border-radius:4px;overflow:hidden}
-.progress-fill{height:100%;width:0%;background:var(--accent);border-radius:4px;transition:width .4s ease-out}
-.progress-label{font-size:12px;color:var(--text-secondary);margin-top:6px;text-align:center}
-.status{font-size:13px;color:var(--text-secondary);min-height:20px;display:flex;align-items:center;gap:6px;justify-content:center}
-.status.success{color:var(--success)}
-.status.error{color:var(--error)}
-.summary-bar{display:none;padding:12px 18px;font-size:13px;gap:8px;align-items:center;border-top:1px solid var(--border-light)}
-.summary-bar.visible{display:flex}
-.summary-bar.success{background:#ecfdf5;color:var(--success)}
-.summary-bar.error{background:#fef2f2;color:var(--error)}
-.summary-bar .btn-new{font-size:12px;padding:4px 12px;border-radius:100px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:var(--font-body);transition:background var(--transition);margin-left:auto}
-.summary-bar .btn-new:hover{background:var(--accent-hover)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:500px){body{padding:20px 12px}}
+body{font-family:DM Sans,sans-serif;background:#f3f4f6;margin:0;padding:32px 20px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px}
+.drop-zone{text-align:center;padding:40px 24px;cursor:pointer;border:2px dashed #ccc;border-radius:14px}
+.drop-zone.dragover{border-color:#7c3aed;background:#f5f3ff}
+.btn{background:#7c3aed;color:#fff;border:none;padding:11px 0;border-radius:10px;font-size:15px;cursor:pointer;width:100%}
+.btn:disabled{background:#c4b5fd}
+.progress-bar{height:4px;background:#e5e7eb;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;width:0%;background:#7c3aed;border-radius:4px;transition:width .4s}
 </style>
 </head>
 <body>
-<div class="container">
+<div style="max-width:800px;margin:0 auto">
   <header>
-    <h1>pptx<span>2</span>one</h1>
-    <span class="tagline">PPT 幻灯片合�?/span>
-    <span class="badge">纯浏览器�?/span>
+    <h1>pptx<span style="color:#7c3aed">2</span>one</h1>
+    <p>PPT 幻灯片合并工具</p>
   </header>
-
   <div class="card drop-zone" id="dropZone">
-    <div class="icon">&#x1F4C4;</div>
-    <div class="label">拖拽 .pptx 文件到此�?/div>
-    <div class="sublabel">或点击下方按钮选择</div>
-    <button class="file-btn" id="selectBtn">选择文件</button>
-    <input type="file" id="fileInput" multiple accept=".pptx">
+    <div style="font-size:36px">&#x1F4C4;</div>
+    <p>拖拽 .pptx 文件到此处</p>
+    <p>或点击下方按钮选择</p>
+    <button class="btn" id="selectBtn" style="width:auto;padding:7px 20px">选择文件</button>
+    <input type="file" id="fileInput" multiple accept=".pptx" hidden>
   </div>
-
-  <div class="card file-list-wrap" id="fileListWrap">
-    <div class="file-list-header">
-      <span class="count">已选择 <em id="fileCount">0</em> 个文�?/span>
-      <button class="btn-clear" id="btnClear">清空</button>
+  <div class="card" id="fileListWrap" style="display:none;margin-top:12px">
+    <div style="padding:14px 18px 8px">
+      <span>已选择 <span id="fileCount">0</span> 个文件</span>
+      <button id="btnClear" style="float:right;border:none;background:none;color:#9ca3af;cursor:pointer">清空</button>
     </div>
     <div id="fileList"></div>
   </div>
-
-  <div class="action-area" id="actionArea" style="display:none">
-    <button class="merge-btn" id="mergeBtn">
-      <span class="label">合并并下�?/span>
-      <span class="spinner"></span>
-    </button>
-    <div class="progress-wrap" id="progressWrap">
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="progress-label" id="progressLabel"></div>
-    </div>
-    <div class="status" id="status"></div>
+  <div id="actionArea" style="display:none;margin-top:12px">
+    <button class="btn" id="mergeBtn">合并并下载</button>
+    <div class="progress-bar" style="margin-top:12px"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="status" style="text-align:center;font-size:13px;color:#6b7280;margin-top:8px"></div>
   </div>
-
-  <div class="summary-bar" id="summaryBar">
+  <div id="summaryBar" style="display:none;padding:12px 18px;margin-top:12px;border-radius:14px;">
     <span id="summaryMsg"></span>
-    <button class="btn-new" id="btnNew">重新开�?/button>
+    <button id="btnNew" style="float:right;border:none;border-radius:100px;background:#7c3aed;color:#fff;cursor:pointer;padding:4px 12px">重新开始</button>
   </div>
 </div>
-
 <script>
-// ============================================================================
-// Constants
-// ============================================================================
-const P_NS = 'http://schemas.openxmlformats.org/presentationml/2006/main';
-const R_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
-const RELS_NS = 'http://schemas.openxmlformats.org/package/2006/relationships';
-const CT_NS = 'http://schemas.openxmlformats.org/package/2006/content-types';
-
-const RELS_SLIDE = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide';
-const RELS_IMAGE = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image';
-
-const PRES_PATH = 'ppt/presentation.xml';
-const PRES_RELS_PATH = 'ppt/_rels/presentation.xml.rels';
-const CT_PATH = '[Content_Types].xml';
-
-// ============================================================================
-// State
-// ============================================================================
 let fileItems = [];
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileListWrap = document.getElementById('fileListWrap');
+const fileList = document.getElementById('fileList');
+const fileCount = document.getElementById('fileCount');
+const btnClear = document.getElementById('btnClear');
+const actionArea = document.getElementById('actionArea');
+const mergeBtn = document.getElementById('mergeBtn');
+const progressFill = document.getElementById('progressFill');
+const statusEl = document.getElementById('status');
+const summaryBar = document.getElementById('summaryBar');
+const summaryMsg = document.getElementById('summaryMsg');
+const btnNew = document.getElementById('btnNew');
 
-// ============================================================================
-// DOM Refs
-// ============================================================================
-const $ = id => document.getElementById(id);
-const dropZone = $('dropZone');
-const fileInput = $('fileInput');
-const selectBtn = $('selectBtn');
-const fileListWrap = $('fileListWrap');
-const fileList = $('fileList');
-const fileCount = $('fileCount');
-const btnClear = $('btnClear');
-const actionArea = $('actionArea');
-const mergeBtn = $('mergeBtn');
-const progressWrap = $('progressWrap');
-const progressFill = $('progressFill');
-const progressLabel = $('progressLabel');
-const statusEl = $('status');
-const summaryBar = $('summaryBar');
-const summaryMsg = $('summaryMsg');
-const btnNew = $('btnNew');
+function setStatus(m,t){statusEl.textContent=m;statusEl.style.color=t==='error'?'#dc2626':t==='success'?'#059669':'#6b7280'}
+function updateProgress(p,msg){progressFill.style.width=Math.min(100,Math.max(0,p))+'%'}
+function showSummary(m,t){summaryMsg.textContent=m;summaryBar.style.display='flex';summaryBar.style.background=t==='error'?'#fef2f2':'#ecfdf5';summaryBar.style.color=t==='error'?'#dc2626':'#059669'}
 
-// ============================================================================
-// UI
-// ============================================================================
-function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function formatSize(b) { if (b < 1024) return b + ' B'; if (b < 1024*1024) return (b/1024).toFixed(1)+' KB'; return (b/1024/1024).toFixed(1)+' MB'; }
-function setStatus(msg, type) { statusEl.innerHTML = msg ? escapeHtml(msg) : ''; statusEl.className = 'status' + (type ? ' '+type : ''); }
-function updateProgress(pct, msg) { progressFill.style.width = Math.min(100, Math.max(0, pct)) + '%'; progressLabel.textContent = msg || ''; progressWrap.classList.add('visible'); }
-function showSummary(msg, type) { summaryMsg.textContent = msg; summaryBar.className = 'summary-bar visible ' + (type || ''); }
+document.getElementById('selectBtn').onclick=e=>{e.stopPropagation();fileInput.click()};
+dropZone.onclick=()=>fileInput.click();
+fileInput.onchange=()=>{if(fileInput.files.length)addFiles(fileInput.files);fileInput.value=''};
+dropZone.ondragover=e=>{e.preventDefault();dropZone.classList.add('dragover')};
+dropZone.ondragleave=()=>dropZone.classList.remove('dragover');
+dropZone.ondrop=e=>{e.preventDefault();dropZone.classList.remove('dragover');if(e.dataTransfer.files.length)addFiles(e.dataTransfer.files)};
+btnClear.onclick=()=>{fileItems=[];render()};
+btnNew.onclick=()=>{fileItems=[];render();summaryBar.style.display='none';setStatus('')};
 
-selectBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
-dropZone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', () => { if (fileInput.files.length) addFiles(fileInput.files); fileInput.value = ''; });
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
-btnClear.addEventListener('click', () => { fileItems = []; render(); });
-btnNew.addEventListener('click', () => { fileItems = []; render(); summaryBar.className = 'summary-bar'; setStatus(''); progressWrap.classList.remove('visible'); });
+function addFiles(input){let added=false;for(const f of input){if(!f.name.toLowerCase().endsWith('.pptx'))continue;if(fileItems.some(it=>it.file===f||(it.name===f.name&&it.size===f.size)))continue;fileItems.push({file:f,name:f.name,size:f.size});added=true}if(added)render()}
 
-function addFiles(input) {
-  let added = false;
-  for (const f of input) {
-    if (!f.name.toLowerCase().endsWith('.pptx')) continue;
-    if (fileItems.some(it => it.file === f || (it.name === f.name && it.size === f.size))) continue;
-    fileItems.push({ file: f, name: f.name, size: f.size });
-    added = true;
+function render(){const has=fileItems.length>0;fileListWrap.style.display=has?'block':'none';actionArea.style.display=has?'block':'none';if(!has){fileList.innerHTML='';fileCount.textContent='0';return}fileCount.textContent=fileItems.length;fileList.innerHTML='';fileItems.forEach((item,idx)=>{const div=document.createElement('div');div.draggable=true;div.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 18px;border-top:1px solid #f0f0f0';div.innerHTML='<span style="width:22px;color:#9ca3af;text-align:center">'+(idx+1)+'</span><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+item.name+'</div><div style="font-size:12px;color:#9ca3af">'+(item.size<1024*1024?(item.size/1024).toFixed(1)+' KB':(item.size/1024/1024).toFixed(1)+' MB')+'</div></div><button style="border:none;background:none;color:#9ca3af;cursor:pointer">&#x2715;</button>';div.ondragstart=e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',idx);setTimeout(()=>div.style.opacity=0.3,0)};div.ondragend=()=>div.style.opacity=1;div.ondragover=e=>{e.preventDefault();e.dataTransfer.dropEffect='move';div.style.borderTop='2px solid #7c3aed'};div.ondragleave=()=>div.style.borderTop='1px solid #f0f0f0';div.ondrop=e=>{e.preventDefault();div.style.borderTop='1px solid #f0f0f0';const fi=parseInt(e.dataTransfer.getData('text/plain'));const ti=parseInt(div.dataset.index);if(fi!==ti){const[m]=fileItems.splice(fi,1);fileItems.splice(ti,0,m);render()}};div.querySelector('button').onclick=()=>{fileItems.splice(idx,1);render()};fileList.appendChild(div)})}
+
+const P_NS='http://schemas.openxmlformats.org/presentationml/2006/main';
+const R_NS='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const RELS_NS='http://schemas.openxmlformats.org/package/2006/relationships';
+const CT_NS='http://schemas.openxmlformats.org/package/2006/content-types';
+const RELS_SLIDE='http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide';
+
+async function performMerge(zips,outZip){
+  for(const path in zips[0].files){if(!zips[0].files[path].dir)outZip.file(path,await zips[0].files[path].async('arraybuffer'))}
+  if(zips.length===1)return;
+  const presXml=new DOMParser().parseFromString(await outZip.files['ppt/presentation.xml'].async('string'),'application/xml');
+  const presRelsXml=new DOMParser().parseFromString(await outZip.files['ppt/_rels/presentation.xml.rels'].async('string'),'application/xml');
+  if(!presXml||!presRelsXml)throw new Error('无法解析 presentation.xml');
+  let ns=0;Object.keys(outZip.files).filter(f=>/^ppt\/slides\/slide\d+\.xml$/i.test(f)).forEach(f=>{const n=parseInt(f.match(/slide(\d+)/i)[1]);if(n>ns)ns=n});
+  ns++;
+  let mr=0;[...presRelsXml.documentElement.getElementsByTagNameNS(RELS_NS,'Relationship')].forEach(r=>{const id=r.getAttribute('Id');if(id){const n=parseInt(id.replace('rId',''));if(n>mr)mr=n}});
+  const sll=presXml.documentElement.getElementsByTagNameNS(P_NS,'sldIdLst')[0];
+  let ms=0;if(sll){[...sll.getElementsByTagNameNS(P_NS,'sldId')].forEach(el=>{const v=parseInt(el.getAttribute('id'));if(v>ms)ms=v})}if(ms===0)ms=255;
+  for(let di=1;di<zips.length;di++){
+    const cz=zips[di];
+    const cs=Object.keys(cz.files).filter(f=>/^ppt\/slides\/slide\d+\.xml$/i.test(f)).sort((a,b)=>parseInt(a.match(/\d+/)[0])-parseInt(b.match(/\d+/)[0]));
+    if(!cs.length)continue;
+    const mr2={},mfc={};
+    for(const sp of cs){const sn=parseInt(sp.match(/\d+/)[0]),rp='ppt/slides/_rels/slide'+sn+'.xml.rels';if(!cz.files[rp])continue;const rd=new DOMParser().parseFromString(await cz.files[rp].async('string'),'application/xml');if(!rd)continue;[...rd.documentElement.getElementsByTagNameNS(RELS_NS,'Relationship')].forEach(r=>{const t=r.getAttribute('Target');if(!t||!t.startsWith('../media/'))return;if(!mr2[t]){const mp=t.substring(3);if(outZip.files[mp]){const nn='../media/'+di+'_'+t.substring(9);mr2[t]=nn;mfc[nn.substring(3)]=cz.files[mp]}else{mr2[t]=t;mfc[mp]=cz.files[mp]}}})}
+    for(const[dp,ze]of Object.entries(mfc)){if(!outZip.files[dp])outZip.file(dp,await ze.async('arraybuffer'))}
+    for(let si=0;si<cs.length;si++){
+      const sp=cs[si],sn=parseInt(sp.match(/\d+/)[0]),nn2=ns+si,nsp='ppt/slides/slide'+nn2+'.xml',nrp='ppt/slides/_rels/slide'+nn2+'.xml.rels',nrid='rId'+(++mr),nsid=++ms;
+      outZip.file(nsp,await cz.files[sp].async('arraybuffer'));
+      const orp='ppt/slides/_rels/slide'+sn+'.xml.rels';
+      if(cz.files[orp]){let rt=await cz.files[orp].async('string');for(const[ot,nt]of Object.entries(mr2)){if(ot!==nt)rt=rt.split('Target="'+ot+'"').join('Target="'+nt+'"')}outZip.file(nrp,rt)}
+      const se=presXml.createElementNS(P_NS,'p:sldId');se.setAttribute('id',''+nsid);se.setAttributeNS(R_NS,'r:id',nrid);sll.appendChild(se);
+      const re=presRelsXml.createElementNS(RELS_NS,'Relationship');re.setAttribute('Id',nrid);re.setAttribute('Type',RELS_SLIDE);re.setAttribute('Target','slides/slide'+nn2+'.xml');presRelsRoot.appendChild(re);
+      if(outZip.files['[Content_Types].xml']){const ct=new DOMParser().parseFromString(await outZip.files['[Content_Types].xml'].async('string'),'application/xml');if(ct){let exists=false;[...ct.documentElement.getElementsByTagNameNS(CT_NS,'Override')].forEach(o=>{if(o.getAttribute('PartName')==='/ppt/slides/slide'+nn2+'.xml')exists=true});if(!exists){const ov=ct.createElementNS(CT_NS,'Override');ov.setAttribute('PartName','/ppt/slides/slide'+nn2+'.xml');ov.setAttribute('ContentType','application/vnd.openxmlformats-officedocument.presentationml.slide+xml');ct.documentElement.appendChild(ov);outZip.file('[Content_Types].xml',new XMLSerializer().serializeToString(ct))}}}
+    }ns+=cs.length
   }
-  if (added) render();
-}
-
-function render() {
-  const has = fileItems.length > 0;
-  fileListWrap.classList.toggle('visible', has);
-  actionArea.style.display = has ? 'block' : 'none';
-  if (!has) { fileList.innerHTML = ''; fileCount.textContent = '0'; return; }
-  fileCount.textContent = fileItems.length;
-  fileList.innerHTML = '';
-  fileItems.forEach((item, idx) => {
-    const div = document.createElement('div');
-    div.className = 'file-item'; div.draggable = true; div.dataset.index = idx;
-    div.innerHTML = '<span class="idx">'+(idx+1)+'</span><span class="drag-handle">&#x22EF;</span><div class="info"><div class="name">'+escapeHtml(item.name)+'</div><div class="meta">'+formatSize(item.size)+'</div></div><span class="badge-slide">PPT</span><button class="btn-remove">&#x2715;</button>';
-    div.addEventListener('dragstart', e => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', idx); setTimeout(() => div.classList.add('dragging'), 0); });
-    div.addEventListener('dragend', () => div.classList.remove('dragging'));
-    div.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; div.classList.add('drag-over'); });
-    div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
-    div.addEventListener('drop', e => { e.preventDefault(); div.classList.remove('drag-over'); const fi = parseInt(e.dataTransfer.getData('text/plain')); const ti = parseInt(div.dataset.index); if (fi !== ti) { const [m] = fileItems.splice(fi, 1); fileItems.splice(ti, 0, m); render(); } });
-    div.querySelector('.btn-remove').addEventListener('click', () => { fileItems.splice(idx, 1); render(); });
-    fileList.appendChild(div);
-  });
-}
-
-// ============================================================================
-// XML Utils
-// ============================================================================
-function parseXml(text) { return new DOMParser().parseFromString(text, 'application/xml'); }
-function serializeXml(doc) { return new XMLSerializer().serializeToString(doc); }
-async function readXml(zip, path) { return zip.files[path] ? parseXml(await zip.files[path].async('string')) : null; }
-async function readText(zip, path) { return zip.files[path] ? zip.files[path].async('string') : null; }
-async function getOutXml(outZip, path) { return outZip.files[path] ? parseXml(await outZip.files[path].async('string')) : null; }
-function setOutXml(outZip, path, doc) { outZip.file(path, serializeXml(doc)); }
-
-// ============================================================================
-// Content Types Helper
-// ============================================================================
-async function addCtEntry(outZip, partName, ct) {
-  if (!outZip.files[CT_PATH]) return;
-  const doc = parseXml(await outZip.files[CT_PATH].async('string'));
-  if (!doc) return;
-  const existing = doc.documentElement.getElementsByTagNameNS(CT_NS, 'Override');
-  for (let i = 0; i < existing.length; i++) {
-    if (existing[i].getAttribute('PartName') === partName) return;
-  }
-  const ov = doc.createElementNS(CT_NS, 'Override');
-  ov.setAttribute('PartName', partName);
-  ov.setAttribute('ContentType', ct);
-  doc.documentElement.appendChild(ov);
-  setOutXml(outZip, CT_PATH, doc);
-}
-
-// ============================================================================
-// Core Merge
-// ============================================================================
-async function performMerge(zips, outZip) {
-  // Step 1: copy first pptx entirely
-  updateProgress(5, '正在复制基础结构�?);
-  const firstZip = zips[0];
-  for (const path in firstZip.files) {
-    if (!firstZip.files[path].dir) {
-      outZip.file(path, await firstZip.files[path].async('arraybuffer'));
-    }
-  }
-  if (zips.length === 1) return;
-
-  // Read output presentation structures
-  const presXml = await getOutXml(outZip, PRES_PATH);
-  const presRelsXml = await getOutXml(outZip, PRES_RELS_PATH);
-  if (!presXml || !presRelsXml) {
-    throw new Error('无法解析 presentation.xml');
-  }
-
-  // Count existing slides in output
-  const outSlideFiles = Object.keys(outZip.files).filter(f => /^ppt\/slides\/slide\d+\.xml$/i.test(f));
-  let nextSlideNum = 0;
-  outSlideFiles.forEach(f => {
-    const n = parseInt(f.match(/slide(\d+)/i)[1]);
-    if (n > nextSlideNum) nextSlideNum = n;
-  });
-  nextSlideNum++;
-
-  // Max rId in output presentation.xml.rels
   const presRelsRoot = presRelsXml.documentElement;
-  const existingRels = presRelsRoot.getElementsByTagNameNS(RELS_NS, 'Relationship');
-  let maxRid = 0;
-  for (let i = 0; i < existingRels.length; i++) {
-    const id = existingRels[i].getAttribute('Id');
-    if (id) { const n = parseInt(id.replace('rId', '')); if (n > maxRid) maxRid = n; }
-  }
-
-  // Max sldId in presentation.xml
-  const sldIdLst = presXml.documentElement.getElementsByTagNameNS(P_NS, 'sldIdLst')[0];
-  let maxSldId = 0;
-  if (sldIdLst) {
-    const ids = sldIdLst.getElementsByTagNameNS(P_NS, 'sldId');
-    for (let i = 0; i < ids.length; i++) {
-      const v = parseInt(ids[i].getAttribute('id'));
-      if (v > maxSldId) maxSldId = v;
-    }
-  }
-  if (maxSldId === 0) maxSldId = 255; // start from 256
-
-  // Step 2: merge subsequent pptx
-  for (let docIdx = 1; docIdx < zips.length; docIdx++) {
-    const curZip = zips[docIdx];
-    const pctBase = 10 + Math.round((docIdx / zips.length) * 75);
-    updateProgress(pctBase, '正在合并�?' + (docIdx + 1) + '/' + zips.length + ' 个文档�?);
-
-    // List slides in current doc (ordered by number)
-    const curSlides = Object.keys(curZip.files)
-      .filter(f => /^ppt\/slides\/slide\d+\.xml$/i.test(f))
-      .sort((a, b) => parseInt(a.match(/\d+/)[0]) - parseInt(b.match(/\d+/)[0]));
-    if (curSlides.length === 0) continue;
-
-    // Build per-doc media rename map: scan all slide rels first
-    const mediaRename = {};  // { '../media/old.png': '../media/new.png' }
-    const mediaFilesToCopy = {}; // { 'ppt/media/new.png': true }
-
-    for (const slidePath of curSlides) {
-      const sn = parseInt(slidePath.match(/\d+/)[0]);
-      const relsPath = 'ppt/slides/_rels/slide' + sn + '.xml.rels';
-      if (!curZip.files[relsPath]) continue;
-      const relsDoc = await readXml(curZip, relsPath);
-      if (!relsDoc) continue;
-      const rels = relsDoc.documentElement.getElementsByTagNameNS(RELS_NS, 'Relationship');
-      for (let i = 0; i < rels.length; i++) {
-        const target = rels[i].getAttribute('Target');
-        const type = rels[i].getAttribute('Type');
-        if (!target || !target.startsWith('../media/')) continue;
-
-        if (!mediaRename[target]) {
-          const mediaRelPath = target.substring(3); // 'ppt/media/xxx'
-          if (outZip.files[mediaRelPath]) {
-            const newName = '../media/' + docIdx + '_' + target.substring(9);
-            mediaRename[target] = newName;
-            mediaFilesToCopy[newName.substring(3)] = curZip.files[mediaRelPath];
-          } else {
-            mediaRename[target] = target;
-            mediaFilesToCopy[mediaRelPath] = curZip.files[mediaRelPath];
-          }
-        }
-      }
-    }
-
-    // Copy media files
-    for (const [destPath, zipEntry] of Object.entries(mediaFilesToCopy)) {
-      if (!outZip.files[destPath]) {
-        outZip.file(destPath, await zipEntry.async('arraybuffer'));
-      }
-    }
-
-    // Process each slide
-    for (let si = 0; si < curSlides.length; si++) {
-      const slidePath = curSlides[si];
-      const sn = parseInt(slidePath.match(/\d+/)[0]);
-      const newSn = nextSlideNum + si;
-      const newSlidePath = 'ppt/slides/slide' + newSn + '.xml';
-      const newRelsPath = 'ppt/slides/_rels/slide' + newSn + '.xml.rels';
-      const newRid = 'rId' + (++maxRid);
-      const newSldId = ++maxSldId;
-
-      // Copy slide XML (no changes needed - rIds stay the same within slide rels)
-      outZip.file(newSlidePath, await curZip.files[slidePath].async('arraybuffer'));
-
-      // Copy and update slide rels (media rename)
-      const origRelsPath = 'ppt/slides/_rels/slide' + sn + '.xml.rels';
-      if (curZip.files[origRelsPath]) {
-        let relsText = await curZip.files[origRelsPath].async('string');
-        for (const [oldT, newT] of Object.entries(mediaRename)) {
-          if (oldT !== newT) {
-            relsText = relsText.split('Target="' + oldT + '"').join('Target="' + newT + '"');
-          }
-        }
-        outZip.file(newRelsPath, relsText);
-      }
-
-      // Add entry to presentation.xml <p:sldIdLst>
-      const sldEl = presXml.createElementNS(P_NS, 'p:sldId');
-      sldEl.setAttribute('id', '' + newSldId);
-      sldEl.setAttributeNS(R_NS, 'r:id', newRid);
-      sldIdLst.appendChild(sldEl);
-
-      // Add relationship in ppt/_rels/presentation.xml.rels
-      const relEl = presRelsXml.createElementNS(RELS_NS, 'Relationship');
-      relEl.setAttribute('Id', newRid);
-      relEl.setAttribute('Type', RELS_SLIDE);
-      relEl.setAttribute('Target', 'slides/slide' + newSn + '.xml');
-      presRelsRoot.appendChild(relEl);
-
-      // Add content type
-      await addCtEntry(outZip, '/ppt/slides/slide' + newSn + '.xml',
-        'application/vnd.openxmlformats-officedocument.presentationml.slide+xml');
-    }
-
-    nextSlideNum += curSlides.length;
-  }
-
-  // Save presentation.xml and its rels
-  setOutXml(outZip, PRES_PATH, presXml);
-  setOutXml(outZip, PRES_RELS_PATH, presRelsXml);
+  outZip.file('ppt/presentation.xml',new XMLSerializer().serializeToString(presXml));
+  outZip.file('ppt/_rels/presentation.xml.rels',new XMLSerializer().serializeToString(presRelsXml));
 }
 
-// ============================================================================
-// Entry
-// ============================================================================
-async function mergeAndDownload() {
-  if (!fileItems.length) { setStatus('请先选择 .pptx 文件', 'error'); return; }
-  if (typeof JSZip === 'undefined') { setStatus('JSZip 库加载失�?, 'error'); return; }
-
-  mergeBtn.classList.add('loading'); mergeBtn.disabled = true;
-  setStatus(''); summaryBar.className = 'summary-bar'; progressWrap.classList.remove('visible');
-
-  try {
-    updateProgress(2, '正在加载文档�?);
-    const zips = [];
-    for (const item of fileItems) zips.push(await JSZip.loadAsync(item.file));
-
-    updateProgress(8, '已加�?' + zips.length + ' 个文档，开始合并�?);
-    const outZip = new JSZip();
-    await performMerge(zips, outZip);
-
-    updateProgress(90, '正在打包文件�?);
-    const blob = await outZip.generateAsync({
-      type: 'blob',
-      mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    });
-
-    const baseName = fileItems.length === 1 ? fileItems[0].name.replace(/\.pptx$/i, '') : '合并演示文稿';
-    const fileName = baseName + '_merged.pptx';
-
-    if (typeof saveAs !== 'undefined') { saveAs(blob, fileName); }
-    else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); URL.revokeObjectURL(url); }
-
-    const totalSlides = nextSlideNum && nextSlideNum > 1 ? (nextSlideNum - 1) : '?';
-    updateProgress(100, '合并完成�?);
-    setStatus('下载已启�?, 'success');
-    showSummary('合并成功: ' + fileName, 'success');
-  } catch (err) {
-    console.error(err);
-    setStatus(err.message || err, 'error');
-    showSummary('合并失败: ' + (err.message || err), 'error');
-  } finally {
-    mergeBtn.classList.remove('loading'); mergeBtn.disabled = false;
-  }
+async function mergeAndDownload(){
+  if(!fileItems.length){setStatus('请先选择 .pptx 文件','error');return}
+  if(typeof JSZip==='undefined'){setStatus('JSZip 库加载失败','error');return}
+  mergeBtn.disabled=true;mergeBtn.textContent='正在合并...';setStatus('');summaryBar.style.display='none';progressFill.style.width='0%'
+  try{
+    const zips=[];for(const item of fileItems)zips.push(await JSZip.loadAsync(item.file));
+    setStatus('已加载 '+zips.length+' 个文档，开始合并...');
+    const outZip=new JSZip();await performMerge(zips,outZip);
+    setStatus('正在生成文件...');
+    const blob=await outZip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
+    const fn=(fileItems.length===1?fileItems[0].name.replace(/\.pptx$/i,''):'合并演示文稿')+'_merged.pptx';
+    if(typeof saveAs!=='undefined'){saveAs(blob,fn)}else{const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=fn;a.click();URL.revokeObjectURL(u)}
+    setStatus('下载已启动','success');showSummary('合并成功: '+fn,'success')
+  }catch(err){console.error(err);setStatus(err.message||err,'error');showSummary('合并失败: '+(err.message||err),'error')}
+  finally{mergeBtn.disabled=false;mergeBtn.textContent='合并并下载'}
 }
-
-mergeBtn.addEventListener('click', mergeAndDownload);
-
-setTimeout(() => {
-  if (typeof JSZip === 'undefined') {
-    setStatus('JSZip 库加载中，请检查网络连�?, 'error');
-  }
-}, 3000);
+mergeBtn.onclick=mergeAndDownload;
 </script>
 </body>
 </html>
