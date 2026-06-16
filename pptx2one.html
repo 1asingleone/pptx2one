@@ -350,10 +350,12 @@ async function performMerge(zips, outZip) {
           if (outZip.files[mediaRelPath]) {
             const newName = '../media/' + docIdx + '_' + target.substring(9);
             mediaRename[target] = newName;
-            mediaFilesToCopy['ppt/' + newName.substring(3)] = curZip.files[mediaRelPath];
+            const srcEntry = curZip.files[mediaRelPath];
+            if (srcEntry) mediaFilesToCopy['ppt/' + newName.substring(3)] = srcEntry;
           } else {
             mediaRename[target] = target;
-            mediaFilesToCopy[mediaRelPath] = curZip.files[mediaRelPath];
+            const srcEntry = curZip.files[mediaRelPath];
+            if (srcEntry) mediaFilesToCopy[mediaRelPath] = srcEntry;
           }
         }
       }
@@ -361,7 +363,7 @@ async function performMerge(zips, outZip) {
 
     // Copy media files
     for (const [destPath, zipEntry] of Object.entries(mediaFilesToCopy)) {
-      if (!outZip.files[destPath]) {
+      if (zipEntry && !outZip.files[destPath]) {
         outZip.file(destPath, await zipEntry.async('arraybuffer'));
       }
     }
