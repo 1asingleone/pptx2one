@@ -346,11 +346,11 @@ async function performMerge(zips, outZip) {
         if (!target || !target.startsWith('../media/')) continue;
 
         if (!mediaRename[target]) {
-          const mediaRelPath = target.substring(3); // 'ppt/media/xxx'
+          const mediaRelPath = 'ppt/' + target.substring(3);
           if (outZip.files[mediaRelPath]) {
             const newName = '../media/' + docIdx + '_' + target.substring(9);
             mediaRename[target] = newName;
-            mediaFilesToCopy[newName.substring(3)] = curZip.files[mediaRelPath];
+            mediaFilesToCopy['ppt/' + newName.substring(3)] = curZip.files[mediaRelPath];
           } else {
             mediaRename[target] = target;
             mediaFilesToCopy[mediaRelPath] = curZip.files[mediaRelPath];
