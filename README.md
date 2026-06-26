@@ -8,6 +8,13 @@ Merge multiple PowerPoint (.pptx) presentations into one — right in your brows
 
 ---
 
+## See also / 同类工具
+
+| 工具 | 格式 |
+|------|------|
+| [docx2one](https://github.com/1asingleone/docx2one) | Word 文档合并 |
+| [pdf2one](https://github.com/1asingleone/pdf2one) | PDF 合并 |
+
 ## 详细介绍
 
 ### 这是什么？
@@ -85,13 +92,6 @@ pptx2one 是一个纯前端工具，让你在浏览器中直接合并多个 Powe
 - Chrome 60+, Edge 79+, Firefox 55+, Safari 12+
 - `.pptx` only (Office 2007+). Legacy `.ppt` is **not** supported
 - Recommended: up to 10 presentations at once
-
-## See also
-
-| 同类工具 | 格式 |
-|----------|------|
-| [docx2one](https://github.com/1asingleone/docx2one) | Word 文档合并 |
-| [pdf2one](https://github.com/1asingleone/pdf2one) | PDF 合并 |
 
 ## License
 
