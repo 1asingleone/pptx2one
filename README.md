@@ -32,6 +32,13 @@ Merge multiple PowerPoint (.pptx) presentations into one — right in your brows
 - `.pptx` only (Office 2007+). Legacy `.ppt` is **not** supported
 - Recommended: up to 10 presentations at once
 
+## See also
+
+| 同类工具 | 格式 |
+|----------|------|
+| [docx2one](https://github.com/1asingleone/docx2one) | Word 文档合并 |
+| [pdf2one](https://github.com/1asingleone/pdf2one) | PDF 合并 |
+
 ## License
 
 MIT
